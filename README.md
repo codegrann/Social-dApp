@@ -1,5 +1,6 @@
-Immutable Passport Integration Guide
-Introduction
+# Immutable Passport Integration Guide
+
+## Introduction
 
     Briefly explain what Immutable Passport is and why it's valuable for developers.
     Provide a high-level overview of the integration process.
