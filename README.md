@@ -171,3 +171,45 @@ const address = await signer.getAddress();
 ```
 
 #### 2. Trigger the Login Process
+
+The login flow is triggered by calling the **_`requestAccounts`_** RPC on the Passport provider. Depending on whether you are using the EIP-1193 provider directly or Ethers.js, you can call the **_requestAccounts_** method.
+
+#### Using Passport (EIP-1193)
+
+If you are using an EIP-1193 provider directly, you can call the requestAccounts method directly:
+
+```bash
+const provider = passport.connectEvm();
+const accounts = await provider.request({ method: "eth_requestAccounts" });
+
+```
+
+Once the **_requestAccounts_** RPC method has been called, the Passport module will begin the authentication process. If the user successfully authenticates, they will be redirected to the Redirect URI defined in the OIDC Configuration.
+
+#### Using Ethers.js
+
+With Ethers.js, you can use the Passport provider and then call the send method to trigger the login process:
+
+```bash
+import { ethers } from 'ethers';
+
+const passportProvider = passport.connectEvm();
+const provider = new ethers.providers.Web3Provider(passportProvider);
+
+const accounts = await provider.send("eth_requestAccounts", []);
+
+```
+
+Once the **_requestAccounts_** RPC method has been called, the Passport module will begin the authentication process, and the user will be redirected to the Redirect URI defined in the OIDC Configuration.
+
+#### 3. Configure the Login Callback
+
+At this point, the route that handles requests to the Redirect URI will need to call the **_loginCallback_** method on page load. Your specific implementation will vary based on your application's architecture, but a vanilla JavaScript implementation may look as follows:
+
+```bash
+window.addEventListener('load', function() {
+  passport.loginCallback();
+});
+```
+
+The **_loginCallback_** method will process the response from the Immutable's auth domain, store the authenticated user in session storage, and close the pop-up. Once the authentication flow is complete, the Promise returned from requestAccounts will also resolve with a single-item array containing the user's address.
