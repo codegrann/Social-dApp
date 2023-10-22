@@ -18,24 +18,22 @@
 6. [Get User Information](#6-get-user-information)
    - 6.1 [Getting User Information](#61-getting-user-information)
 7. [Enable User Wallet Interactions](#7-enable-user-wallet-interactions)
-   - 7.1 [Using Passport (EIP-1193)](#71-using-passport-eip-1193)
-   - 7.2 [Using Ethers.js](#72-using-ethers-js)
-   - 7.3 [Validating a Message Signature](#73-validating-a-message-signature)
+   - 7.1 [Validating a Message Signature](#73-validating-a-message-signature)
 8. [Send Your First Transaction](#8-send-your-first-transaction)
    - 8.1 [Scenario](#81-scenario)
    - 8.2 [Create a New Contract Instance](#82-create-a-new-contract-instance)
    - 8.3 [Call the Contract Method](#83-call-the-contract-method)
    - 8.4 [Working with Typescript](#84-working-with-typescript)
 
-## Introduction
+## 1. Introduction
 
 Passport is a blockchain-based identity and wallet system designed for Web3 games. It offers users a persistent identity that remains consistent across various Web3 applications. Passport includes a non-custodial wallet by default, ensuring a user-friendly transaction experience comparable to traditional web2 standards.
 
-## Setup
+## 2. Setup
 
 This section provides a step-by-step guide on how to integrate Passport authentication into your application.
 
-### Register Your Application
+### 2.1 Register Your Application
 
 Before using Passport, you must register your application as an OAuth 2.0 client in the Immutable Developer Hub. Follow these steps:
 
@@ -61,7 +59,7 @@ v) Web origin URLs: The URLs allowed to request authorization (available for the
 
 Once your application is successfully registered, make a note of your application's Client ID, Callback URL, and Logout URL for later use in initializing the Passport module in your application.
 
-### Install and Initialize
+### 2.2 Install and Initialize
 
 Before you can use Passport, you need to install the Immutable SDK and initialize the Passport Client.
 
@@ -70,7 +68,7 @@ Before you can use Passport, you need to install the Immutable SDK and initializ
 - An application registered in the Immutable Developer Hub.
 - Node.js version 18 or higher.
 
-#### 1. Install
+#### a. Install
 
 To install the Immutable SDK, run the following command in your project's root directory:
 
@@ -105,7 +103,7 @@ yarn cache clean
 yarn
 ```
 
-#### 2. Initialize Passport
+#### b. Initialize Passport
 
 Next, you'll need to initialize the Passport client. The Passport constructor accepts a PassportModuleConfiguration object.
 
@@ -127,15 +125,15 @@ const passportInstance = new passport.Passport({
 
 **Note:** The Passport constructor may throw the following error: **INVALID_CONFIGURATION**. This occurs when the environment configuration or OIDC Configuration is incorrect. Verify that you are passing the correct configuration settings.
 
-#### 3. Next Steps
+#### c. Next Steps
 
 You have now successfully installed and initialized the Passport module. The next step is to enable users' identity via a user's Passport account in your application.
 
-### Enable User Identity
+## 3. Enable User Identity
 
 Immutable Passport is an Open ID provider and uses the Open ID Connect protocol for authentication and authorization. Third-party applications, such as games or marketplaces, can integrate Passport into their platforms to authenticate their users and access their wallets.
 
-#### How Authentication Works
+### 3.1 How Authentication Works
 
 When using Passport as an identity provider, the authentication flow begins within your application. If the user already has an account with Passport, they can sign in to their existing account using the same credentials, which can be shared across multiple apps.
 
@@ -157,7 +155,7 @@ The high-level steps for the authentication flow are as follows:
 
 If you are using the Immutable SDK, all these steps are simplified by the **provider.requestAccounts()** function.
 
-### Log In Users
+## 4. Log In Users
 
 This section guides you through enabling users to log into your application using their Passport accounts. Users are required to log in before your application can interact with their wallets or call any user-specific functionality.
 
@@ -165,7 +163,7 @@ This section guides you through enabling users to log into your application usin
 
 - Have the Passport module installed and initialized.
 
-#### 1. Initialize the Provider
+### 4.1 Initialize the Provider
 
 Passport provider implements the Ethereum EIP-1193 standard, which allows you to interact with a user's Passport wallet as you would with any other Ethereum wallet. You can use Passport's zkEVM provider or integrate it with Ethers.js.
 
@@ -197,7 +195,7 @@ const address = await signer.getAddress();
 
 ```
 
-#### 2. Trigger the Login Process
+### 4.2 Trigger the Login Process
 
 The login flow is triggered by calling the **_`requestAccounts`_** RPC on the Passport provider. Depending on whether you are using the EIP-1193 provider directly or Ethers.js, you can call the **_requestAccounts_** method.
 
@@ -229,7 +227,7 @@ const accounts = await provider.send("eth_requestAccounts", []);
 
 Once the **_requestAccounts_** RPC method has been called, the Passport module will begin the authentication process, and the user will be redirected to the Redirect URI defined in the OIDC Configuration.
 
-#### 3. Configure the Login Callback
+### 4.3 Configure the Login Callback
 
 At this point, the route that handles requests to the Redirect URI will need to call the **_loginCallback_** method on page load. Your specific implementation will vary based on your application's architecture, but a vanilla JavaScript implementation may look as follows:
 
@@ -241,7 +239,7 @@ window.addEventListener('load', function() {
 
 The **_loginCallback_** method will process the response from the Immutable's auth domain, store the authenticated user in session storage, and close the pop-up. Once the authentication flow is complete, the Promise returned from requestAccounts will also resolve with a single-item array containing the user's address.
 
-### Log Out Users
+## 5. Log Out Users
 
 This section instructs you on how to log users out of Passport and your application.
 
@@ -249,7 +247,7 @@ This section instructs you on how to log users out of Passport and your applicat
 
 The user must be logged into your application via Passport.
 
-#### How to Log Out a User
+### 5.1 How to Log Out a User
 
 When a user authenticates through Passport, there are two "sessions" you need to account for:
 
@@ -277,11 +275,11 @@ await passport.logout();
 
 ```
 
-**Logout Modes**
+### 5.2 Logout Modes
 
 Redirect Mode: The 'redirect' logout mode clears the application session by removing the JWT from the browser's local storage. The user is then redirected to the Passport auth domain, where the Passport session is cleared. Finally, the user is redirected back to the specified logoutRedirectUri.
 
-### Get User Information
+## 6. Get User Information
 
 This section instructs you on how to get information about the user currently logged in.
 
@@ -289,7 +287,7 @@ This section instructs you on how to get information about the user currently lo
 
 - The user must be logged into your application via Passport.
 
-#### Getting User Information
+### 6.1 Getting User Information
 
 The **_getUserInfo_** function on the Passport instance returns information about the currently logged-in user.
 
@@ -304,7 +302,7 @@ Properties of the user profile include:
 - nickname: The nickname of the logged-in user.
   Note that the **_getUserInfo_** function may throw the error **_NOT_LOGGED_IN_ERROR_** if no user is logged in at the time of the function call. Verify that a user has logged in before attempting to call **_getUserInfo_**.
 
-### Enable User Wallet Interactions
+## 7. Enable User Wallet Interactions
 
 This section guides you on connecting to users' Passport wallets to facilitate useful game transactions, such as transfers or payments.
 
@@ -339,7 +337,7 @@ const signer = provider.getSigner();
 const address = await signer.getAddress();
 ```
 
-#### Validating a Message Signature
+### 7.1 Validating a Message Signature
 
 To verify a signature, the user's smart contract wallet must have been deployed previously. When signing a message using the signTypedData Passport method, a unique signature string is returned. Verifying the authenticity of a signature can be done by calling the isSignatureValid method on the smart contract. You can use Ethers.js to achieve this.
 
@@ -377,7 +375,7 @@ export const isSignatureValid = async (
 };
 ```
 
-### Send Your First Transaction
+## 8. Send Your First Transaction
 
 This section guides you through the process of sending a transaction to the zkEVM network with Ethers.js and the Passport zkEVM provider.
 
@@ -387,11 +385,11 @@ This section guides you through the process of sending a transaction to the zkEV
 
 . Install ethers.js (npm install ethers, using ethers v5).
 
-### Scenario
+### 8.1 Scenario
 
 In this scenario, we will send a transaction to the zkEVM network to transfer an ERC-721 token. Ethers provides a helper class called Contract that allows us to interact with smart contracts by abstracting data encoding using the contract ABI.
 
-**Create a New Contract Instance**
+### 8.2 Create a New Contract Instance
 
 First, create a new instance of the contract you want to interact with. In this example, we will use the ERC-721 interface:
 
@@ -416,7 +414,7 @@ const contract = new ethers.Contract(
 );
 ```
 
-**Call the Contract Method**
+### 8.3 Call the Contract Method
 
 Now, you can call the contract method:
 
@@ -433,7 +431,7 @@ await tx.wait();
 
 Under the hood, ethers will build an **_eth_sendTransaction_** RPC call to the Passport provider, including data, 'to', and 'from' fields.
 
-Working with Typescript
+### 8.4 Working with Typescript
 
 To make the contract interface type-safe, you can use Typechain to generate TypeScript interfaces from the contract ABI. The contract ABI can be stored or exported to a file and then used to generate the TypeScript interfaces.
 
