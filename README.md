@@ -311,7 +311,9 @@ A wallet provider allows you to connect to a user's wallet and facilitate blockc
 **Prerequisites:**
 
 Have the Passport module installed and initialized.
-Using Passport (EIP-1193)
+
+#### Using Passport (EIP-1193)
+
 Create the Passport provider:
 
 ```bash
