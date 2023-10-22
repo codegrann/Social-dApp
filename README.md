@@ -41,7 +41,7 @@ Before using Passport, you must register your application as an OAuth 2.0 client
 2. Navigate to the Passport configuration screen and create a Passport client for your environment.
 3. When you're ready to launch your application on the mainnet, configure a Passport client under a mainnet environment.
 
-Register your application as an OAuth 2.0 client in the Immutable Developer Hub by clicking the "Add Client" button on the Passport page.
+Register your application as an OAuth 2.0 client in the Immutable Developer Hub by clicking the "Add Client" button on the Passport page. More information can be found [here](https://docs.immutable.com/docs/zkEVM/products/passport/register-application)
 
 #### Things to Note When Adding a Client
 
@@ -61,7 +61,7 @@ Once your application is successfully registered, make a note of your applicatio
 
 ### 2.2 Install and Initialize
 
-Before you can use Passport, you need to install the Immutable SDK and initialize the Passport Client.
+Before you can use Passport, you need to install the Immutable SDK and initialize the Passport Client. You can refer to [this article](https://docs.immutable.com/docs/zkEVM/products/passport/install) for a more detailed guidance.
 
 **Prerequisites:**
 
