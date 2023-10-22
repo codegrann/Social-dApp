@@ -470,3 +470,7 @@ const tx = await contract.safeTransferFrom(
 );
 
 ```
+
+# Conclusion
+
+In conclusion, this guide has provided a comprehensive overview of integrating Immutable Passport authentication into your Web3 application. By following the steps outlined in this document, you can empower your users with a secure and consistent identity solution that spans across various Web3 platforms. Passport offers a seamless login and authentication process, allowing your users to interact with their wallets and engage in blockchain transactions effortlessly. With Passport, you not only enhance the security of your application but also create a more user-friendly and efficient experience in the Web3 ecosystem. Embrace the power of Immutable Passport to unlock the full potential of your Web3 application and provide your users with a cutting-edge identity and wallet solution. For more information about Immutable Passport and Immutable zkEVM as a whole visit the [Passsport Documentation](https://docs.immutable.com/docs/zkEVM/products/passport) and the [Immutable zkEVM Docs](https://docs.immutable.com/docs/zkEVM/overview).
