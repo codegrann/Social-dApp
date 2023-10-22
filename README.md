@@ -1,5 +1,32 @@
 # Immutable Passport Integration Guide
 
+## Table of Contents
+
+1. [Introduction](#1-introduction)
+2. [Setup](#2-setup)
+   - 2.1 [Register Your Application](#21-register-your-application)
+   - 2.2 [Install and Initialize](#22-install-and-initialize)
+3. [Enable User Identity](#3-enable-user-identity)
+   - 3.1 [How Authentication Works](#31-how-authentication-works)
+4. [Log In Users](#4-log-in-users)
+   - 4.1 [Initialize the Provider](#41-initialize-the-provider)
+   - 4.2 [Trigger the Login Process](#42-trigger-the-login-process)
+   - 4.3 [Configure the Login Callback](#43-configure-the-login-callback)
+5. [Log Out Users](#5-log-out-users)
+   - 5.1 [How to Log Out a User](#51-how-to-log-out-a-user)
+   - 5.2 [Logout Modes](#52-logout-modes)
+6. [Get User Information](#6-get-user-information)
+   - 6.1 [Getting User Information](#61-getting-user-information)
+7. [Enable User Wallet Interactions](#7-enable-user-wallet-interactions)
+   - 7.1 [Using Passport (EIP-1193)](#71-using-passport-eip-1193)
+   - 7.2 [Using Ethers.js](#72-using-ethers-js)
+   - 7.3 [Validating a Message Signature](#73-validating-a-message-signature)
+8. [Send Your First Transaction](#8-send-your-first-transaction)
+   - 8.1 [Scenario](#81-scenario)
+   - 8.2 [Create a New Contract Instance](#82-create-a-new-contract-instance)
+   - 8.3 [Call the Contract Method](#83-call-the-contract-method)
+   - 8.4 [Working with Typescript](#84-working-with-typescript)
+
 ## Introduction
 
 Passport is a blockchain-based identity and wallet system designed for Web3 games. It offers users a persistent identity that remains consistent across various Web3 applications. Passport includes a non-custodial wallet by default, ensuring a user-friendly transaction experience comparable to traditional web2 standards.
@@ -213,3 +240,233 @@ window.addEventListener('load', function() {
 ```
 
 The **_loginCallback_** method will process the response from the Immutable's auth domain, store the authenticated user in session storage, and close the pop-up. Once the authentication flow is complete, the Promise returned from requestAccounts will also resolve with a single-item array containing the user's address.
+
+### Log Out Users
+
+This section instructs you on how to log users out of Passport and your application.
+
+**Prerequisites:**
+
+The user must be logged into your application via Passport.
+
+#### How to Log Out a User
+
+When a user authenticates through Passport, there are two "sessions" you need to account for:
+
+- The Passport session layer maintains a session between the user and Passport in auth.immutable.com.
+- The application session layer maintains a session between the user and your application through JWTs.
+  T o log out a user from your application and Passport, you can use the logout function on the Passport instance.
+
+1. Initialize Passport and set the preferred logout mode:
+
+```bash
+const passport = new Passport({
+  logoutRedirectUri: 'http://localhost:3000',
+  logoutMode: 'redirect', // defaults to 'redirect' if not set
+  // ...
+});
+
+```
+
+2. Authenticate the user. Refer to the "Enable User Login" page for more information.
+
+3. Log the user out:
+
+```bash
+await passport.logout();
+
+```
+
+**Logout Modes**
+
+Redirect Mode: The 'redirect' logout mode clears the application session by removing the JWT from the browser's local storage. The user is then redirected to the Passport auth domain, where the Passport session is cleared. Finally, the user is redirected back to the specified logoutRedirectUri.
+
+### Get User Information
+
+This section instructs you on how to get information about the user currently logged in.
+
+**Prerequisites:**
+
+- The user must be logged into your application via Passport.
+
+#### Getting User Information
+
+The **_getUserInfo_** function on the Passport instance returns information about the currently logged-in user.
+
+```bash
+const userProfile = await passport.getUserInfo();
+```
+
+Properties of the user profile include:
+
+- email: The email address of the logged-in user. This property will be undefined if the email scope has not been requested.
+- sub: The subject (unique identifier) of the logged-in user.
+- nickname: The nickname of the logged-in user.
+  Note that the **_getUserInfo_** function may throw the error **_NOT_LOGGED_IN_ERROR_** if no user is logged in at the time of the function call. Verify that a user has logged in before attempting to call **_getUserInfo_**.
+
+### Enable User Wallet Interactions
+
+This section guides you on connecting to users' Passport wallets to facilitate useful game transactions, such as transfers or payments.
+
+A wallet provider allows you to connect to a user's wallet and facilitate blockchain transactions. Immutable makes it easy to initialize a provider for a user's Passport wallet.
+
+**Prerequisites:**
+
+Have the Passport module installed and initialized.
+Using Passport (EIP-1193)
+Create the Passport provider:
+
+```bash
+const passportProvider = passport.connectEvm();
+```
+
+Once a provider is created, you can call various methods on it via the request function (protocol-agnostic).
+
+#### Using Ethers.js
+
+Passport is also compatible with existing Ethereum libraries and products, such as Ethers.js.
+
+For example, you may want to use the Passport provider when creating a new provider with Ethers.js, which abstracts the complexity of interacting directly with an EIP-1193 provider:
+
+```bash
+import { ethers } from 'ethers';
+
+const passportProvider = passport.connectEvm();
+const provider = new ethers.providers.Web3Provider(passportProvider);
+
+// Use the provider as you would any other Ethereum provider:
+const signer = provider.getSigner();
+const address = await signer.getAddress();
+```
+
+#### Validating a Message Signature
+
+To verify a signature, the user's smart contract wallet must have been deployed previously. When signing a message using the signTypedData Passport method, a unique signature string is returned. Verifying the authenticity of a signature can be done by calling the isSignatureValid method on the smart contract. You can use Ethers.js to achieve this.
+
+Here's an example:
+
+```bash
+
+import { ethers } from 'ethers';
+
+const ERC_1271_MAGIC_VALUE = '0x1626ba7e';
+
+export const isSignatureValid = async (
+  address: string,
+  payload: TypedDataPayload,
+  signature: string,
+  zkEvmProvider: Provider,
+) => {
+  const types = { ...payload.types };
+  // Ethers auto-generates the EIP712Domain type in the TypedDataEncoder, and so it needs to be removed
+  delete types.EIP712Domain;
+
+  const hash = ethers.utils._TypedDataEncoder.hash(
+    payload.domain,
+    types,
+    payload.message,
+  );
+  const contract = new ethers.Contract(
+    address,
+    ['function isValidSignature(bytes32, bytes) public view returns (bytes4)'],
+    new ethers.providers.Web3Provider(zkEvmProvider),
+  );
+
+  const isValidSignatureHex = await contract.isValidSignature(hash, signature);
+  return isValidSignatureHex === ERC_1271_MAGIC_VALUE;
+};
+```
+
+### Send Your First Transaction
+
+This section guides you through the process of sending a transaction to the zkEVM network with Ethers.js and the Passport zkEVM provider.
+
+**Prerequisites:**
+
+. Have the Passport module installed and initialized.
+
+. Install ethers.js (npm install ethers, using ethers v5).
+
+### Scenario
+
+In this scenario, we will send a transaction to the zkEVM network to transfer an ERC-721 token. Ethers provides a helper class called Contract that allows us to interact with smart contracts by abstracting data encoding using the contract ABI.
+
+**Create a New Contract Instance**
+
+First, create a new instance of the contract you want to interact with. In this example, we will use the ERC-721 interface:
+
+```bash
+import { ethers } from 'ethers';
+
+const provider = passport.connectEvm();
+const signer = provider.getSigner();
+
+const userAddress = await signer.getAddress();
+const toAddress = '<address to transfer the token to>';
+const erc721ContractAddress = '<address of the ERC-721 contract>';
+const tokenId = 1234;
+
+// Construct the contract interface using the ABI
+const contract = new ethers.Contract(
+  erc721ContractAddress,
+  [
+    'function safeTransferFrom(address from, address to, uint256 tokenId)',
+  ],
+  signer,
+);
+```
+
+**Call the Contract Method**
+
+Now, you can call the contract method:
+
+```bash
+const tx = await contract.safeTransferFrom(
+  userAddress,
+  toAddress,
+  tokenId,
+);
+
+// Wait for the transaction to complete
+await tx.wait();
+```
+
+Under the hood, ethers will build an **_eth_sendTransaction_** RPC call to the Passport provider, including data, 'to', and 'from' fields.
+
+Working with Typescript
+
+To make the contract interface type-safe, you can use Typechain to generate TypeScript interfaces from the contract ABI. The contract ABI can be stored or exported to a file and then used to generate the TypeScript interfaces.
+
+Example:
+
+```bash
+typechain --target=ethers-v5 -out-dir=app/contracts abis/ERC721.json
+```
+
+The generated code includes a contract factory that can be used to create a contract instance. Here's an example:
+
+```bash
+import { ethers } from 'ethers';
+import { ERC721_factory, ERC721 } from './contracts';
+
+const provider = passport.connectEvm();
+const signer = provider.getSigner();
+
+const userAddress = await signer.getAddress();
+const toAddress = '<address to transfer the token to>';
+const erc721ContractAddress =  '<address of the ERC-721 contract>';
+
+// Create a new instance of the contract
+const contract: ERC721 = ERC721_factory.connect(
+  erc721ContractAddress,
+  signer,
+);
+
+// Call the contract method, with type-safe arguments
+const tx = await contract.safeTransferFrom(
+  userAddress,
+  toAddress,
+  tokenId,
+);
+
+```
